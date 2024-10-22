@@ -1,6 +1,6 @@
 "use client";
 
-import { login } from "@/actions/login";
+import { register } from "@/actions/register";
 import {
   Form,
   FormControl,
@@ -40,7 +40,7 @@ export const RegisterForm = () => {
     setSuccess("");
 
     startTransition(() => {
-      login(values).then((data) => {
+      register(values).then((data) => {
         setError(data.error);
         setSuccess(data.success);
       });
