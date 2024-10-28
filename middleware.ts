@@ -1,13 +1,17 @@
 import NextAuth from "next-auth";
 import authConfig from "./auth.config";
+import { apiAuthPrefix, authRoutes, publicRoutes } from "./routes";
 // export { auth as middleware } from "@/auth";
 
 const { auth } = NextAuth(authConfig);
 
 export default auth((req) => {
+  const { nextUrl } = req;
   const isLoggedIn = !!req.auth;
-  console.log("ROUTE: ", req.nextUrl.pathname);
-  console.log("IS LOGGED IN: ", isLoggedIn);
+
+  const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
+  const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
+  const isAuthRoute = authRoutes.includes(nextUrl.pathname);
 });
 
 export const config = {
