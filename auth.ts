@@ -1,15 +1,21 @@
-import { PrismaAdapter } from "@auth/prisma-adapter";
-import NextAuth from "next-auth";
-import authConfig from "./auth.config";
-import { db } from "./lib/db";
+// import { PrismaAdapter } from "@auth/prisma-adapter";
+// import NextAuth from "next-auth";
+// import authConfig from "./auth.config";
+// import { db } from "./lib/db";
 
-export const {
-  handlers: { GET, POST },
-  signIn,
-  signOut,
-  auth,
-} = NextAuth({
-  adapter: PrismaAdapter(db),
-  session: { strategy: "jwt" },
-  ...authConfig,
+// export const {
+//   handlers: { GET, POST },
+//   signIn,
+//   signOut,
+//   auth,
+// } = NextAuth({
+//   adapter: PrismaAdapter(db),
+//   session: { strategy: "jwt" },
+//   ...authConfig,
+// });
+import NextAuth from "next-auth";
+import GitHub from "next-auth/providers/github";
+
+export const { handlers, signIn, signOut, auth } = NextAuth({
+  providers: [GitHub],
 });

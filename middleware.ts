@@ -22,3 +22,5 @@ export const config = {
     "/(api|trpc)(.*)",
   ],
 };
+
+export { auth as middleware } from "@/auth";
