@@ -1,6 +1,11 @@
+import authConfig from "@/auth.config";
+import {
+  apiAuthPrefix,
+  authRoutes,
+  DEFAULT_LOGGIN_REDIRRECT,
+  publicRoutes,
+} from "@/routes";
 import NextAuth from "next-auth";
-import authConfig from "./auth.config";
-import { apiAuthPrefix, authRoutes, publicRoutes } from "./routes";
 // export { auth as middleware } from "@/auth";
 
 const { auth } = NextAuth(authConfig);
@@ -12,6 +17,22 @@ export default auth((req) => {
   const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
   const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
   const isAuthRoute = authRoutes.includes(nextUrl.pathname);
+
+  if (isApiAuthRoute) {
+    return null;
+  }
+
+  if (isAuthRoute) {
+    if (isLoggedIn) {
+      return Response.redirect(new URL(DEFAULT_LOGGIN_REDIRRECT, nextUrl));
+    }
+    return null;
+  }
+
+  if (!isLoggedIn && !isPublicRoute) {
+    return Response.redirect(new URL("/auth/login", nextUrl));
+  }
+  return null;
 });
 
 export const config = {
@@ -22,5 +43,3 @@ export const config = {
     "/(api|trpc)(.*)",
   ],
 };
-
-export { auth as middleware } from "@/auth";
