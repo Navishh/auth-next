@@ -5,6 +5,7 @@ import * as z from "zod";
 
 import { signIn } from "@/auth";
 import { getUserByEmail } from "@/data/user";
+import { sendVerificationEmail } from "@/lib/mail";
 import { generateVerificationToken } from "@/lib/tokens";
 import { DEFAULT_LOGGIN_REDIRRECT } from "@/routes";
 import { LoginSchema } from "@/schemas";
@@ -20,7 +21,7 @@ export const login = async (values: z.infer<typeof LoginSchema>) => {
 
   const existingUser = await getUserByEmail(email);
 
-  if (!existingUser || !existingUser.email || existingUser.password) {
+  if (!existingUser || !existingUser.email || !existingUser.password) {
     return { error: "Email does not exist!" };
   }
   // if (!existingUser || !existingUser.email || !existingUser.password) {
@@ -31,6 +32,12 @@ export const login = async (values: z.infer<typeof LoginSchema>) => {
     const verificationToken = await generateVerificationToken(
       existingUser.email
     );
+
+    await sendVerificationEmail(
+      verificationToken.email,
+      verificationToken.token
+    );
+
     return { success: "Confirmation email sent!" };
   }
 
@@ -55,65 +62,73 @@ export const login = async (values: z.infer<typeof LoginSchema>) => {
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // "use server";
 
-// import { signIn } from "@/auth";
-// import { getUserByEmail } from "@/data/user";
-// import { db } from "@/lib/db";
-// import { generateAuthToken, generateVerificationToken } from "@/lib/tokens";
-// import { LoginSchema } from "@/schemas";
-// import bcrypt from "bcryptjs";
-// import { AuthError } from "next-auth";
 // import * as z from "zod";
+
+// import { signIn } from "@/auth";
+// import { getUserByEmail, updateUserToken } from "@/data/user"; // Ensure updateUserToken is defined to update the token
+// import { generateAuthToken, generateVerificationToken } from "@/lib/tokens"; // Assuming you have a token generation function
+// import { DEFAULT_LOGGIN_REDIRECT } from "@/routes";
+// import { LoginSchema } from "@/schemas";
+// import { AuthError } from "next-auth";
+// // "use server";
+
+// // import * as z from "zod";
+
+// // import { signIn } from "@/auth";
+// // import { getUserByEmail } from "@/data/user";
+// // import { generateVerificationToken } from "@/lib/tokens";
+// // import { DEFAULT_LOGGIN_REDIRRECT } from "@/routes";
+// // import { LoginSchema } from "@/schemas";
+// // import { AuthError } from "next-auth";
 
 // export const login = async (values: z.infer<typeof LoginSchema>) => {
 //   const validatedFields = LoginSchema.safeParse(values);
 
-//   // Check if fields are valid
 //   if (!validatedFields.success) {
 //     return { error: "Invalid fields!" };
 //   }
 
 //   const { email, password } = validatedFields.data;
-
-//   // Get the existing user by email
 //   const existingUser = await getUserByEmail(email);
 
-//   if (!existingUser) {
-//     return { error: "User does not exist!" };
+//   if (!existingUser || !existingUser.email || !existingUser.password) {
+//     return { error: "Email does not exist!" };
 //   }
 
-//   // Check if passwords match
-//   const passwordMatch = await bcrypt.compare(password, existingUser.password);
-//   if (!passwordMatch) {
-//     return { error: "Invalid credentials!" };
-//   }
-
-//   // Check if the email is verified
 //   if (!existingUser.emailVerified) {
 //     const verificationToken = await generateVerificationToken(
 //       existingUser.email
 //     );
-//     // Logic to send verification email (not shown here)
 //     return { success: "Confirmation email sent!" };
 //   }
 
-//   // Generate a new authentication token for this session
-//   const newAuthToken = generateAuthToken(); // Define generateAuthToken function
-//   await db.user.update({
-//     where: { email },
-//     data: { authenticationToken: newAuthToken },
-//   });
-
 //   try {
-//     // Sign in using NextAuth
-//     await signIn("credentials", {
+//     // Attempt to sign in with credentials
+//     const signInResult = await signIn("credentials", {
 //       email,
 //       password,
-//       redirect: false,
+//       redirectTo: DEFAULT_LOGGIN_REDIRECT,
 //     });
+
+//     if (signInResult.error) {
+//       return { error: "Invalid credentials!" };
+//     }
+
+//     // Generate a new auth token if login is successful
+//     const newAuthToken = generateAuthToken();
+
+//     // Update the user's token in the database
+//     await updateUserToken(existingUser.id, newAuthToken);
+
 //     return { success: "Logged in successfully!" };
 //   } catch (error) {
 //     if (error instanceof AuthError) {
-//       return { error: "An error occurred during sign-in!" };
+//       switch (error.type) {
+//         case "CredentialsSignin":
+//           return { error: "Invalid credentials!" };
+//         default:
+//           return { error: "An error occurred!" };
+//       }
 //     }
 //     throw error;
 //   }
