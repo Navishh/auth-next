@@ -16,23 +16,9 @@ export const NewVerificationForm = () => {
 
   const token = searchParams.get("token");
 
-  // const onSubmit = useCallback(() => {
-  //   if (!token) {
-  //     setError("Missing Token!");
-  //     return;
-  //   }
-
-  //   newVerification(token);
-  //   .then((data) => {
-  //     setSuccess(data.success);
-  //     setError(data.error);
-  //   })
-  // }, [token]);
-
-  // useEffect(() => {
-  //   onSubmit();
-  // }, [onSubmit]);
   const onSubmit = useCallback(() => {
+    if (success || error) return;
+
     if (!token) {
       setError("Missing Token!");
       return;
@@ -46,7 +32,7 @@ export const NewVerificationForm = () => {
       .catch(() => {
         setError("Something went wrong!");
       });
-  }, [token]);
+  }, [token, success, error]);
 
   useEffect(() => {
     onSubmit();
@@ -60,7 +46,7 @@ export const NewVerificationForm = () => {
       <div className="flex items-center w-full justify-center">
         {!success && !error && <HashLoader size={20} color="orange" />}
         <FormSuccess message={success} />
-        <FormError message={error} />
+        {!success && <FormError message={error} />}
       </div>
     </CardWrapper>
   );
