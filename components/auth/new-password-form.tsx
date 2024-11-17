@@ -1,6 +1,6 @@
 "use client";
 
-import { reset } from "@/actions/reset";
+import { newPassword } from "@/actions/new-password";
 import {
   Form,
   FormControl,
@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/form";
 import { NewPasswordSchema } from "@/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -28,6 +29,9 @@ export const NewPasswordForm = () => {
   //   errorParam === "OAuthAccountNotLinked"
   //     ? "Email is already in use with a different provider!"
   //     : "";
+
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token");
 
   const [error, setError] = useState<string | undefined>("");
   const [success, setSuccess] = useState<string | undefined>("");
@@ -47,7 +51,7 @@ export const NewPasswordForm = () => {
 
     console.log(values);
     startTransition(() => {
-      reset(values).then((data) => {
+      newPassword(values, token).then((data) => {
         setError(data?.error);
         setSuccess(data?.success);
       });
