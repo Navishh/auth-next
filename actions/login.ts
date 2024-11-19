@@ -4,7 +4,10 @@
 import * as z from "zod";
 
 import { signIn } from "@/auth";
+import { gettwoFactorConfirmationByUserId } from "@/data/two-factor-confirmation";
+import { getTwoFactorTokenByEmail } from "@/data/two-factor-token";
 import { getUserByEmail } from "@/data/user";
+import { db } from "@/lib/db";
 import { sendTwoFactorTokenEmail, sendVerificationEmail } from "@/lib/mail";
 import {
   generateTwoFactorToken,
@@ -47,6 +50,35 @@ export const login = async (values: z.infer<typeof LoginSchema>) => {
   if (existingUser.isTwoFactorEnabled && existingUser.email) {
     if (code) {
       //TODO: VERIFY CODE
+      const twoFactorToken = await getTwoFactorTokenByEmail(existingUser.email);
+
+      if (!twoFactorToken) {
+        return { error: "Invalid code!" };
+      }
+
+      if (twoFactorToken !== code) {
+        return { error: "Invalid code!" };
+      }
+
+      const hasExpired = new Date(twoFactorToken.expires) < new Date();
+
+      if (hasExpired) {
+        return { error: "Code expired!" };
+      }
+
+      await db.twoFactorToken.delete({
+        where: { id: twoFactorToken.id },
+      });
+
+      const existingConfirmation = await gettwoFactorConfirmationByUserId(
+        existingUser.id
+      );
+
+      if (existingConfirmation) {
+        await db.twoFactorConfirmation.delete({
+          where: { id: existingConfirmation.id },
+        });
+      }
     } else {
       const twoFactorToken = await generateTwoFactorToken(existingUser.email);
 
