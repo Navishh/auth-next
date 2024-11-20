@@ -56,7 +56,7 @@ export const login = async (values: z.infer<typeof LoginSchema>) => {
         return { error: "Invalid code!" };
       }
 
-      if (twoFactorToken !== code) {
+      if (twoFactorToken.token !== code) {
         return { error: "Invalid code!" };
       }
 
@@ -79,6 +79,12 @@ export const login = async (values: z.infer<typeof LoginSchema>) => {
           where: { id: existingConfirmation.id },
         });
       }
+
+      await db.twoFactorConfirmation.create({
+        data: {
+          userId: existingUser.id,
+        },
+      });
     } else {
       const twoFactorToken = await generateTwoFactorToken(existingUser.email);
 
