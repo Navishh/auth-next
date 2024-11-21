@@ -1,24 +1,27 @@
-import { auth, signOut } from "@/auth";
+"use client";
 
-const SettingsPage = async () => {
-  const session = await auth();
+import { logout } from "@/actions/logout";
+import { useCurrenUser } from "@/hooks/use-current-user";
+const SettingsPage = () => {
+  const user = useCurrenUser();
+
+  const onClick = () => {
+    logout();
+  };
+
   return (
     <div className="justify-center items-center text-center">
-      {JSON.stringify(session)}
-      <form
-        className="mt-4"
-        action={async () => {
-          "use server";
-          await signOut();
-        }}
+      {/* {JSON.stringify(user)} */}
+      <button
+        onClick={onClick}
+        type="submit"
+        className="relative overflow-hidden bg-white text-gray-950 font-medium px-4 py-2 rounded-md transition-all duration-300 group"
       >
-        <button
-          type="submit"
-          className="bg-red-500 text-white font-medium px-4 py-2 rounded-md"
-        >
+        <span className="absolute inset-0 bg-red-500 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-500 ease-in-out"></span>
+        <span className="relative z-10 transition-colors duration-500 group-hover:text-white">
           Sign out
-        </button>
-      </form>
+        </span>
+      </button>
     </div>
   );
 };
