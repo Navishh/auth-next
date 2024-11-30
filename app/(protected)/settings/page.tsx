@@ -44,6 +44,7 @@ const SettingsPage = () => {
       email: user?.email || undefined,
       password: undefined,
       role: user?.role || undefined,
+      isTwoFactorEnabled: user?.isTwoFactorEnabled || undefined,
     },
   });
   const { update } = useSession();
@@ -190,7 +191,11 @@ const SettingsPage = () => {
                         </FormDescription>
                       </div>
                       <FormControl>
-                        <Switch disabled={isPending} checked={field.value} />
+                        <Switch
+                          disabled={isPending}
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
                       </FormControl>
                     </FormItem>
                   )}

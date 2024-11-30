@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { sendVerificationEmail } from "@/lib/mail";
 import { generateVerificationToken } from "@/lib/tokens";
 import { SettingsSchema } from "@/schemas";
+import bcrypt from "bcryptjs";
 import * as z from "zod";
 
 export const settings = async (values: z.infer<typeof SettingsSchema>) => {
@@ -40,15 +41,20 @@ export const settings = async (values: z.infer<typeof SettingsSchema>) => {
     }
   }
 
-  // const verificationToken = values.email ? await generateVerificationToken(values.email) : null;
+  if (values.password && values.newPassword && dbUser.password) {
+    const passwordMatch = await bcrypt.compare(
+      values.password,
+      dbUser.password
+    );
 
-  // if (verificationToken) {
-  //   await sendVerificationEmail(
-  //     verificationToken.email,
-  //     verificationToken.token
-  //   );
-  // }
+    if (!passwordMatch) {
+      return { error: "Incorrect password" };
+    }
 
+    const hashedPassword = await bcrypt.hash(values.newPassword, 10);
+    values.password = hashedPassword;
+    values.newPassword = undefined;
+  }
   const verificatioToken = await generateVerificationToken(values.email || "");
 
   await sendVerificationEmail(verificatioToken.email, verificatioToken.token);
